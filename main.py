@@ -3,9 +3,10 @@ from data import db_session
 from data.users import User
 from forms.user import RegisterForm, LoginForm
 from flask import render_template, redirect
-from flask import make_response, request, session
-from flask_login import LoginManager, login_user
+from flask import request
+from flask_login import LoginManager, login_user, logout_user
 import datetime
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -13,6 +14,21 @@ db_session.global_init('db/users.db')
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+test_data = {}
+questions_index = 1
+answers = []
+
+
+def load_tests(num):
+    global test_data, questions_index, answers
+    test_data = {}
+    questions_index = 1
+    answers = []
+    with open('tests/tests.json', 'r') as f:
+        a = json.load(f)
+    test_data = a[num]
+    questions_index = 1
 
 
 @login_manager.user_loader
@@ -81,6 +97,57 @@ def registration():
         db_sess.commit()
         return redirect('/login')
     return render_template('register.html', title='Регистрация', form=form)
+
+
+@app.route('/logout')
+def log_out():
+    logout_user()  # Надо сделать предупреждение
+    return redirect('/login')
+
+
+@app.route('/')
+def main_route():
+    return render_template('index.html', title='Главная страница')
+
+
+@app.route('/test', methods=['GET', 'POST'])
+def tests():
+    global questions_index
+    if request.method == 'GET':
+        questions = {}
+        for i in request.values.items():
+            if 'a' == i[0]:
+                if i[1] == '1':
+                    load_tests("1")
+                if i[1] == '2':
+                    load_tests("2")
+                if i[1] == '3':
+                    load_tests("3")
+
+        if str(questions_index) not in test_data:
+            return redirect('/success')
+
+        try:
+            questions['a'] = test_data[str(questions_index)]
+        except KeyError:
+            return redirect('/')
+
+        return render_template('tests.html', title='Тесты', questions=questions)
+
+    if request.method == 'POST':
+        if request.form.get('question'):
+            answers.append((int(request.form.get('question')), test_data[str(questions_index)][2]))
+            questions_index += 1
+        return redirect('/test')
+
+
+@app.route('/success')
+def results():
+    if answers:
+        return render_template('success.html', title='На главную страницу',
+                               results=f'{sum([1 for i in answers if i[0] == i[1]])} из {len(answers)}')
+    else:
+        return redirect('/')
 
 
 if __name__ == '__main__':

@@ -1,5 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h4>{{ text }}!</h4>
+    <h1>Добро пожаловать!</h1><br>
+    <h3>Выберите тест:</h3>
+    <div class="control">
+        <a class="btn btn-success" href="/test?a=1">Тест 1</a>
+        <a class="btn btn-success" href="/test?a=2">Тест 2</a>
+        <a class="btn btn-success" href="/test?a=3">Тест 3</a>
+    </div>
 {% endblock %}
