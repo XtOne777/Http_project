@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>{{ questions.a.1 }}</h1><br>
+    <div style="margin-top: 100px;">
+    <br><div style="border: 1px double black;">
+    <h1 style="margin: 10px">{{ questions.a.1 }}</h1><br>
     <form method="POST" action="">
-        <input type="radio" id="1" name="question" value="1">{{ questions.a.0.0 }}<br>
-        <input type="radio" id="2" name="question" value="2">{{ questions.a.0.1 }}<br>
-        <input type="radio" id="3" name="question" value="3">{{ questions.a.0.2 }}<br>
-        <input type="radio" id="4" name="question" value="4">{{ questions.a.0.3 }}<br>
-        <button type="submit" class="btn btn-submit">Подтвердить</button>
+        <input type="radio" id="1" name="question" value="1" style="margin: 5px;">{{ questions.a.0.0 }}<br>
+        <input type="radio" id="2" name="question" value="2" style="margin: 5px;">{{ questions.a.0.1 }}<br>
+        <input type="radio" id="3" name="question" value="3" style="margin: 5px;">{{ questions.a.0.2 }}<br>
+        <input type="radio" id="4" name="question" value="4" style="margin: 5px;">{{ questions.a.0.3 }}<br>
+        <div style="text-align: end">
+            <button type="submit" class="btn btn-submit" style="border: 2px double PaleTurquoise; background-color: #E0FFFF; width: 200px; margin: 10px">Подтвердить</button>
+        </div>
     </form>
+    </div>
+        <label style="margin: 5px; font-size: 1.2em; color: #d22e3a">{{message}}</label>
+    </div>
 {% endblock %}

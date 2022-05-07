@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="" method="POST">
+        {% for i in form %}
+            <div style="font-size: 0.85em; margin-top: 30px; background-color: #E0FFFF; border: 2px double PaleTurquoise; padding: 1px;">
+                {{ i.hidden_tag() }}
+                {{ i.question.label }}<br>
+                {{ i.question(class="form-control")}}
+                {{ i.answers_1.label }} {{ i.answers_1(class="form-control") }}
+                {{ i.answers_2.label }} {{ i.answers_2(class="form-control") }}
+                {{ i.answers_3.label }} {{ i.answers_3(class="form-control") }}
+                {{ i.answers_4.label }} {{ i.answers_4(class="form-control") }}
+                {{ i.true_answer.label }} {{ i.true_answer(class="form-control") }}
+            </div>
+        {% endfor %}
+        <div style="text-align: end">
+            <button type="submit" class="btn btn-submit" style="border: 2px double PaleTurquoise; background-color: #E0FFFF; width: 200px; margin: 10px">Подтвердить</button>
+        </div>
+    </form>
+{% endblock %}

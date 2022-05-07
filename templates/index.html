@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Добро пожаловать!</h1><br>
-    <h3>Выберите тест:</h3>
-    <div class="control">
-        <a class="btn btn-success" href="/test?a=1">Тест 1</a>
-        <a class="btn btn-success" href="/test?a=2">Тест 2</a>
-        <a class="btn btn-success" href="/test?a=3">Тест 3</a>
+    <h1>Добро пожаловать {{ user_name }}!</h1><br>
+    <h3 style="text-align: center">Выберите тест:</h3>
+    <div class="control" style="text-align: center">
+        {% for i in count %}
+            <a class="btn btn-success" href="/test?a={{i}}">Тест {{i}}</a>
+        {%endfor%}
     </div>
 {% endblock %}
