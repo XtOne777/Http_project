@@ -6,9 +6,11 @@ from flask import request
 from data import db_session
 from data.users import User
 from forms.task import CreateForm
+from forms.edit_form import EditForm
 # Формы регистрации и входа
 from forms.user import RegisterForm, LoginForm
-from flask_login import LoginManager, login_user, logout_user, login_required
+from flask_login import LoginManager, login_user,\
+    logout_user, login_required
 # Стандартные библиотеки
 import datetime
 import json
@@ -38,7 +40,8 @@ def load_tests(num):
     test_data = {}
     questions_index = 1
     answers = []
-    with open('tests/tests.json', 'r') as f:
+    with open('tests/tests.json', 'r',
+              encoding='utf-8') as f:
         a = json.load(f)
     if num in a:
         # Загрузка определённого теста
@@ -65,16 +68,19 @@ def create_task():
                             i.true_answer.data]
             num += 1
         # Взятие данных из json вопросов
-        with open('tests/tests.json', 'r') as f:
+        with open('tests/tests.json', 'r',
+                  encoding='utf-8') as f:
             a = json.load(f)
         # Перезапись с новыми значениями
-        with open('tests/tests.json', 'w') as f:
+        with open('tests/tests.json', 'w',
+                  encoding='utf-8') as f:
             a[f"{len(a) + 1}"] = gg
             print(a)
             json.dump(a, f)
     # Проверка на наличие админа
     if db_session.create_session().query(User).get(user_id).admin:
-        return render_template('create_tasks.html', form=form, title='Создание заданий')
+        return render_template('create_tasks.html', form=form,
+                               title='Создание заданий')
     return redirect('/')
 
 
@@ -98,13 +104,33 @@ def load_user(user_id_got):
 def profile():
     global user_name, user_id
     is_admin = db_session.create_session().query(User).get(user_id).admin  # Проверка на наличие админа
+    # Дополнительная информация
+    about = db_session.create_session().query(User).get(user_id).about
+    email = db_session.create_session().query(User).get(user_id).email
     return render_template('profile.html', title='Профиль',
-                           user_name=user_name, is_admin=is_admin)
+                           user_name=user_name, is_admin=is_admin,
+                           about=about, email=email)
 
 
 # Исключение ошибок
-@app.errorhandler(Exception)
+@app.errorhandler(404)
 def error(e):
+    # Передача рандомной картинки
+    from random import sample
+
+    random_picture = sample(['./static/first.png',
+                             './static/second.png',
+                             './static/third.png',
+                             './static/fourth.png',
+                             './static/fifth.png'], 1)
+    # Вывод ошибки
+    print(e)
+
+    return render_template('error.html', random_picture=random_picture[0], title='Ошибка 404')
+
+
+@app.errorhandler(AttributeError)
+def error_a(e):
     # Стандартная ошибка при подключение аккаунта
     # Связанна с тем что Flask сперва прогружает страничку, а затем аккаунт
     if e != "'NoneType' object has no attribute 'admin'":
@@ -184,7 +210,8 @@ def log_out():
 @app.route('/')
 def main_route():
     # Прогрузка тестов
-    with open('tests/tests.json', 'r') as f:
+    with open('tests/tests.json', 'r',
+              encoding='utf-8') as f:
         a = json.load(f)
     global user_name
     # Передача главной страницы
@@ -204,6 +231,7 @@ def tests():
         for i in request.values.items():
             if 'a' == i[0]:
                 load_tests(i[1])
+                return redirect('/test')
         if str(questions_index) not in test_data:
             return redirect('/success')
         try:
@@ -212,7 +240,8 @@ def tests():
             return redirect('/')
         # Отправка страницы теста
         return render_template('tests.html', title='Тесты',
-                               questions=questions)
+                               questions=questions,
+                               questions_index=[questions_index, len(test_data)])
     # Проверка на отправку формы
     if request.method == 'POST':
         # Проверка на отправку вопроса
@@ -223,7 +252,8 @@ def tests():
         # Иначе отправить ошибку о выборе варианта
         else:
             return render_template('tests.html', title='Тесты',
-                                   questions=questions, message="* Выберите вариант ответа!")
+                                   questions=questions, message="* Выберите вариант ответа!",
+                                   questions_index=[questions_index, len(test_data)])
         # Перенаправка обратно на страницу
         return redirect('/test')
 
@@ -242,6 +272,69 @@ def results():
                                results=f'{sum([1 for i in answers if i[0] == i[1]])} из {len(answers)}',
                                test_data=test_data, answer=k)
     return redirect('/')
+
+
+@app.route('/edit', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    global user_name
+
+    # Создание формы
+    form = EditForm()
+    message = ''
+
+    # При начального принятия формы
+    if request.method == 'GET':
+        # Вход в бд
+        db_sess = db_session.create_session()
+        # Получение данных об аккаунте
+        profile_data = db_sess.query(User).filter(User.id == user_id).first()
+        # Передача предыдущих значений
+        if profile_data:
+            from werkzeug.datastructures import MultiDict
+
+            form = EditForm(formdata=MultiDict({'name': profile_data.name,
+                                                'about': profile_data.about}))
+
+    # После нажатия на кнопку подтверждения
+    if request.method == 'POST':
+        # Вход в бд
+        db_sess = db_session.create_session()
+        # Получение данных об аккаунте
+        profile_data = db_sess.query(User).filter(User.id == user_id).first()
+
+        # Импортирование функции хеширования пароля
+        from werkzeug.security import generate_password_hash
+
+        # Проверка на правильный пароль
+        if profile_data.check_password(form.password.data):
+            # Проверка на ввод нового пароля
+            if form.password_new:
+                # Проверка на повторный ввод нового пароля(сходятся ли)
+                if form.password_new.data == form.password_new_again.data:
+                    # Перезапись старого пароля на новый
+                    profile_data.hashed_password = generate_password_hash(form.password_new.data)
+                    # Изменение доп данных
+                    profile_data.about = form.about.data
+                    profile_data.name = form.name.data
+                    # Сохранение бд
+                    db_sess.commit()
+                    # Изменение имены аккаунта
+                    user_name = form.name.data
+                    # Перенаправление в профиль
+                    return redirect('/profile')
+                else:  # В случае если пароли(новые) не совпали
+                    message = '* Пароли не совпали'
+            else:  # В случае если не нужен новый пароль
+                profile_data.about = form.about.data
+                profile_data.name = form.name.data
+                db_sess.commit()
+                user_name = form.name.data
+                return redirect('/profile')
+        else:  # В случае если пароль неверный
+            message = '* Неправильный пароль'
+    # Передача страницы изменения профиля
+    return render_template('edit.html', form=form, message=message)
 
 
 # Запуск кода

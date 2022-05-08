@@ -1,15 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Добро пожаловать {{ user_name }}!</h1><br>
+    <h1>Профиль:</h1><br>
+    <div>
+        <label style="font-weight: bold">Имя пользователя:</label>
+        <label>{{ user_name }}</label><br>
+        <label style="font-weight: bold">Почта:</label>
+        <label>{{ email }}</label><br>
+        <label style="font-weight: bold">О себе:</label>
+        <label>{{ about }}</label><br>
+        <a class="btn btn-info" href="/edit">Изменить</a>
+    </div>
     {% if is_admin == True %}
-        <div style="text-align: center">
+        <div style="text-align: right">
             <a class="btn btn-success" href="/create_task" style="width: 200px">Создать задания</a>
         </div>
     {% else %}
         <h1 style="font-size: 1.05em">Пока что вам не доступны функции админа!</h1>
     {% endif %}
-    <br><div style="text-align: center">
-        <a class="alert alert-danger" href="/logout" style="width: 200px">Выход из аккаунта</a>
-    </div>
+    <br><div style="text-align: right">
+            <a class="alert alert-danger" href="/logout" style="width: 200px">Выход из аккаунта</a>
+        </div>
 {% endblock %}
