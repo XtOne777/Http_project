@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Пользователи:</h1><br>
+    {% for i in users%}
+    <div style="border: 1px double black;">
+        <label style="font-size: 1.05em; font-weight: bold">Пользователь: </label>
+        <label style="font-size: 1.05em">{{ i.name }}</label><br>
+        <label  style="font-weight: bold">Почта: </label>
+        <label>{{ i.email }}</label><br>
+        {% if i.admin %}
+            <label style="font-weight: bold">Статус: <label style="color: #FF0000">Админ</label></label>
+        {% else %}
+            <label style="font-weight: bold">Статус: <label style="color: #7CFC00">Пользователь</label></label>
+        {%endif%}
+        <div style="text-align: right; margin: 10px">
+            <a class="btn btn-success" href="/user/{{i.id}}">Просмотреть</a>
+        </div>
+    </div><br>
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Профиль:</h1><br>
+    <form action="" method="post">
+    <div>
+        <label style="font-weight: bold">Имя пользователя:</label>
+        <label>{{ user_name }}</label><br>
+        <label style="font-weight: bold">Почта:</label>
+        <label>{{ email }}</label><br>
+        <label style="font-weight: bold">О себе:</label>
+        <label>{{ about }}</label><br>
+        <label style="font-weight: bold">Статус:</label>
+        {% if admin %}
+            <label style="color: #FF0000">Админ</label><br>
+        {% else %}
+            <label style="color: #7CFC00">Пользователь</label><br>
+            <button class="btn btn-info" type="submit">Назначить админом</button>
+        {% endif %}
+        <label style="color: #7CFC00">{{ message }}</label>
+    </div></form>
+{% endblock %}

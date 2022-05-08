@@ -5,20 +5,20 @@
     <br>
         <label>Вопрос: {{questions_index.0}} из {{questions_index.1}}</label>
         <div style="border: 1px double black;">
-        <meta charset="utf-8">
-        <div style="margin: 10px; font-size: 1.2em">
-            {{ questions.a.1 }}
-        </div><br>
-        <form method="POST" action="">
-            <input type="radio" id="1" name="question" value="1" style="margin: 5px;">{{ questions.a.0.0 }}<br>
-            <input type="radio" id="2" name="question" value="2" style="margin: 5px;">{{ questions.a.0.1 }}<br>
-            <input type="radio" id="3" name="question" value="3" style="margin: 5px;">{{ questions.a.0.2 }}<br>
-            <input type="radio" id="4" name="question" value="4" style="margin: 5px;">{{ questions.a.0.3 }}<br>
-            <div style="text-align: end">
-                <button type="submit" class="btn btn-submit" style="border: 2px double PaleTurquoise; background-color: #E0FFFF; width: 200px; margin: 10px">Подтвердить</button>
-            </div>
-    </form>
-    </div>
+            <meta charset="utf-8">
+            <div style="margin: 10px; font-size: 1.2em">
+                {{ questions.a.1 }}
+            </div><br>
+            <form method="POST" action="">
+                <input type="radio" id="1" name="question" value="1" style="margin: 5px;">{{ questions.a.0.0 }}<br>
+                <input type="radio" id="2" name="question" value="2" style="margin: 5px;">{{ questions.a.0.1 }}<br>
+                <input type="radio" id="3" name="question" value="3" style="margin: 5px;">{{ questions.a.0.2 }}<br>
+                <input type="radio" id="4" name="question" value="4" style="margin: 5px;">{{ questions.a.0.3 }}<br>
+                <div style="text-align: end">
+                    <button type="submit" class="btn btn-submit" style="border: 2px double PaleTurquoise; background-color: #E0FFFF; width: 200px; margin: 10px">Подтвердить</button>
+                </div>
+            </form>
+        </div>
         <label style="margin: 5px; font-size: 1.2em; color: #d22e3a">{{message}}</label>
     </div>
 {% endblock %}

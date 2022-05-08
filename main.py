@@ -1,7 +1,7 @@
 # Flask
 from flask import Flask
 from flask import render_template, redirect
-from flask import request
+from flask import request, abort
 # База данных и формы
 from data import db_session
 from data.users import User
@@ -54,6 +54,10 @@ def load_tests(num):
 # Создание заданий
 @app.route('/create_task', methods=['GET', 'POST'])
 def create_task():
+    # Проверка на админа
+    if not db_session.create_session().query(User).get(user_id).admin:
+        abort(404)
+    # Создание форм с вопросами
     form = [CreateForm() for _ in range(20)]
     if request.method == 'POST':
         gg = {}  # Формы для вопросов
@@ -118,29 +122,34 @@ def error(e):
     # Передача рандомной картинки
     from random import sample
 
+    # Пути к картинкам
     random_picture = sample(['./static/first.png',
                              './static/second.png',
                              './static/third.png',
                              './static/fourth.png',
                              './static/fifth.png'], 1)
     # Вывод ошибки
+    # Данная функция нужна для отселживание возможных ошибок
     print(e)
 
     return render_template('error.html', random_picture=random_picture[0], title='Ошибка 404')
 
 
 @app.errorhandler(AttributeError)
-def error_a(e):
+def error_attribute(e):
     # Стандартная ошибка при подключение аккаунта
     # Связанна с тем что Flask сперва прогружает страничку, а затем аккаунт
     if e != "'NoneType' object has no attribute 'admin'":
-        print(e)
+        print(e, type(e))
     return redirect('/')
 
 
 # Вход в аккаунт
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    if user_id or user_name:
+        print(user_id, user_name)
+        return redirect('/')
     # Создание формы
     form = LoginForm()
     # Проверка на подтверждение
@@ -148,11 +157,11 @@ def login():
         # Подключение к бд
         db_sess = db_session.create_session()
         # Поиск почты
-        user = db_sess.query(User).filter(User.email == form.email.data).first()
+        user_login = db_sess.query(User).filter(User.email == form.email.data).first()
         # Проверка пароля
-        if user and user.check_password(form.password.data):
+        if user_login and user_login.check_password(form.password.data):
             # Подкючение к аккаунту
-            login_user(user, remember=form.remember_me.data)
+            login_user(user_login, remember=form.remember_me.data)
             return redirect("/")  # Перенаправление на главную страницу
         # Ошибка при неправильном логине или пароле
         return render_template('login.html',
@@ -166,6 +175,8 @@ def login():
 # Регистрация
 @app.route('/register', methods=['GET', 'POST'])
 def registration():
+    if user_id or user_name:
+        return redirect('/')
     # Создание формы регистрации
     form = RegisterForm()
     # Проверка на подтверждение действий
@@ -184,14 +195,14 @@ def registration():
                                    form=form,
                                    message="Такой пользователь уже есть")
         # Создание класса пользователя
-        user = User()
+        user_reg = User()
         # Передание значений с полей ввода
-        user.name, user.email, user.about =\
+        user_reg.name, user_reg.email, user_reg.about =\
             form.name.data, form.email.data, form.about.data
         # Хэширование пароля
-        user.set_password(form.password.data)
+        user_reg.set_password(form.password.data)
         # Сохранение данных в бд
-        db_sess.add(user)
+        db_sess.add(user_reg)
         db_sess.commit()
         # Перенаправление на авторизацию
         return redirect('/login')
@@ -202,7 +213,12 @@ def registration():
 # Выход из аккаунта
 @app.route('/logout')
 def log_out():
+    global user_name, user_id
+    # Выход из аккаунта
     logout_user()
+    # Сброс данных о пользователе
+    user_name, user_id = '', None
+    # Переход на страничку авторизации
     return redirect('/login')
 
 
@@ -335,6 +351,45 @@ def edit_profile():
             message = '* Неправильный пароль'
     # Передача страницы изменения профиля
     return render_template('edit.html', form=form, message=message)
+
+
+@app.route('/search', methods=['GET', 'POST'])
+def search():
+    global user_id
+    # Проверка на админа
+    if not db_session.create_session().query(User).get(user_id).admin:
+        abort(404)
+    # Отправка всех пользователей
+    users = db_session.create_session().query(User).all()
+    return render_template('search.html', users=users)
+
+
+@app.route('/user/<int:user_id_got>', methods=['GET', 'POST'])
+def user(user_id_got):
+    # Проверка на админа
+    if not db_session.create_session().query(User).get(user_id).admin:
+        abort(404)
+    # Подключение к бд
+    db_sess = db_session.create_session()
+    user_got = db_sess.query(User).get(user_id_got)
+    message = ''
+    # Получение данных из пользователя
+    user_got_name = user_got.name
+    user_got_email = user_got.email
+    user_got_about = user_got.about
+    user_got_admin = user_got.admin
+    # Проверка на нажатие кнопки
+    if request.method == "POST":
+        # Выдача админа
+        user_got.admin = 1
+        user_got_admin = user_got.admin
+        # Сохранение базы данных
+        db_sess.commit()
+        message = f'* {user_got_name} назначен админом!'
+    # Возрат странички сайта
+    return render_template('user_profile.html', user_name=user_got_name,
+                           email=user_got_email, about=user_got_about,
+                           admin=user_got_admin, message=message)
 
 
 # Запуск кода

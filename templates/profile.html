@@ -12,8 +12,10 @@
         <a class="btn btn-info" href="/edit">Изменить</a>
     </div>
     {% if is_admin == True %}
-        <div style="text-align: right">
+        <div style="text-align: center">
+            <label>Функции админа: </label><br>
             <a class="btn btn-success" href="/create_task" style="width: 200px">Создать задания</a>
+            <a class="btn btn-primary" href="/search" style="width: 200px">Поиск пользователей</a>
         </div>
     {% else %}
         <h1 style="font-size: 1.05em">Пока что вам не доступны функции админа!</h1>
